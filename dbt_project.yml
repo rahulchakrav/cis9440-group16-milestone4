@@ -1,0 +1,27 @@
+name: 'nyc_analytics'
+version: '1.0.0'
+config-version: 2
+
+profile: 'default'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  nyc_analytics:
+    group16:
+      staging:
+        +materialized: table
+        +schema: group16_staging
+
+      marts:
+        +materialized: table
+        +schema: group16_marts
