@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: stg_nyc_collisions
+    description: NYC collisions dated January 2021 through June 2026. Duplicate IDs are retained and fail tests; missing person counts stay null.
+    columns:
+      - name: collision_id
+        data_tests: [unique, not_null]
+      - name: crash_date
+        data_tests: [not_null]
+      - name: severity_key
+        data_tests: [not_null]
+      - name: staged_at_utc
+        description: Time dbt built this staging table; not the original extraction or raw load timestamp.
+  - name: stg_nyc_311_requests
+    description: Street Light Condition and Traffic Signal Condition requests created January 2021 through June 2026. Closures after the analysis period are retained.
+    columns:
+      - name: unique_key
+        description: Source ID converted to INT64 to match the final dimensional model. Invalid conversions fail the not-null test.
+        data_tests: [unique, not_null]
+      - name: raw_unique_key
+        description: Source identifier text retained for tracing conversion issues.
+      - name: created_datetime
+        data_tests: [not_null]
+      - name: complaint_type
+        data_tests: [not_null]
+      - name: staged_at_utc
+        description: Time dbt built this staging table; not the original extraction or raw load timestamp.

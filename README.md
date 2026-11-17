@@ -1,34 +1,27 @@
 # CIS 9440 — Group 16 Milestone 4
 
-This repo has the dbt work I’ve put together so far for our NYC collision and 311 streetlight and traffic-signal project.
+This repo has the dbt work I’ve put together for our NYC collision and 311 streetlight and traffic-signal project.
 
-If you’re adding these files to your dbt project, start with [GROUP16_HANDOFF.md](GROUP16_HANDOFF.md). It explains what to copy, how to run it, and what we still need to finish.
+Start with [GROUP16_HANDOFF.md](GROUP16_HANDOFF.md) for the overall setup. If you already copied the first three dimensions, [STAGING_SETUP.md](STAGING_SETUP.md) explains the new staging files and how to check them.
 
 ## What’s here so far
 
-I’ve added the raw source definitions, three dimension models (`dim_date`, `dim_time`, and `dim_crash_severity`), and six tests to check for duplicate or missing dimension keys. There’s also a query to get the column names and data types from both raw tables.
+- Source definitions for the two raw BigQuery tables.
+- `dim_date`, `dim_time`, and `dim_crash_severity`, with six dimension-key tests.
+- `stg_nyc_collisions` and `stg_nyc_311_requests`, written using the column names and types returned by our raw-schema query.
+- Staging data checks and four unit tests covering date boundaries, severity, missing values, duplicate records, and late closures.
+- Queries to inspect the raw schema and compare timestamp interpretations.
 
-`dbt parse` passed on my working branch, but my BigQuery sandbox settings blocked the build. The models still need to be built and tested in the project we’re using for the final warehouse.
+The staging models still need a successful build and test run in BigQuery. Before running them, we need to confirm how the Cloud Functions loaded the timestamps. We also need to resolve the missing original load timestamp before building the facts. The setup notes explain both points.
 
 ## Where to find everything
 
-- `models/group16/` — the source definitions, dimension models, and tests.
-- `analyses/inspect_raw_schema.sql` — the query for checking the raw-table columns.
-- `dbt_project.yml` — the project configuration. If you’re copying the files into your existing project, add the `group16` configuration under your own project name and keep your connection settings.
-- [GROUP16_HANDOFF.md](GROUP16_HANDOFF.md) — the setup steps, expected results, and remaining work.
+- `models/group16/` — the source definitions, models, and YAML tests.
+- `macros/group16/` — the shared staging helpers.
+- `tests/group16/` — data checks and row-count reconciliation.
+- `analyses/` — queries for inspecting the source tables.
+- `dbt_project.yml` — the project configuration. Keep your own project name and connection when adding this work to an existing project.
 
-These models don’t need any extra dbt packages. Use your own BigQuery connection with permission to read the source data and create the output tables.
+These models don’t need extra dbt packages. Use a BigQuery connection that can read the source data and create the output tables.
 
-## Run the first three models
-
-After following the setup steps in the handoff, run these commands one at a time:
-
-```bash
-dbt parse
-```
-
-```bash
-dbt build --select dim_date dim_time dim_crash_severity
-```
-
-If everything works, you should get three dimension tables and six passing tests. We still need to add the staging models, the remaining dimensions, and both fact tables before the warehouse is complete.
+We still need `dim_location`, `dim_complaint`, `dim_request_status`, both fact tables, relationship tests, and full warehouse validation before Milestone 4 is complete.
