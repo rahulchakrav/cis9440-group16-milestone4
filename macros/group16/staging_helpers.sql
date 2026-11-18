@@ -5,7 +5,7 @@
         {% if execute %}
             {{ exceptions.raise_compiler_error(
                 'Confirm the raw timestamp encoding in the Cloud Function, then set '
-                ~ variable_name ~ ' to UTC or America/New_York. See STAGING_SETUP.md.'
+                ~ variable_name ~ ' to UTC or America/New_York. See GROUP16_HANDOFF.md.'
             ) }}
         {% endif %}
         {# Placeholder for dbt's parse phase only; builds cannot use this default. #}
