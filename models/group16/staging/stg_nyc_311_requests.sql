@@ -5,6 +5,11 @@ with normalized as (
     select
         nullif(trim(unique_key), '') as raw_unique_key,
         {{ group16_integer('unique_key') }} as unique_key,
+        {% if var('group16_311_has_loaded_at_utc', false) %}
+        safe_cast(loaded_at_utc as timestamp) as loaded_at_utc,
+        {% else %}
+        cast(null as timestamp) as loaded_at_utc,
+        {% endif %}
         created_date as raw_created_timestamp,
         closed_date as raw_closed_timestamp,
         {{ group16_local_datetime('created_date', timestamp_timezone, 'group16_311_timestamp_timezone') }} as created_datetime,
@@ -51,5 +56,7 @@ select
     cast(round(datetime_diff(closed_datetime, created_datetime, second) / 3600.0, 2) as numeric) as resolution_hours,
     raw_created_timestamp,
     raw_closed_timestamp,
+    loaded_at_utc,
     current_timestamp() as staged_at_utc
 from in_scope
+

@@ -1,0 +1,140 @@
+version: 2
+models:
+- name: fact_collision
+  description: One row per distinct collision from staging. Dimensions are resolved
+    upstream; failed lookups remain null and fail tests.
+  columns:
+  - name: collision_id
+    data_tests:
+    - unique
+    - not_null
+  - name: crash_date_key
+    data_tests:
+    - not_null
+    - relationships:
+        arguments:
+          to: ref('dim_date')
+          field: date_key
+  - name: crash_time_key
+    data_tests:
+    - not_null
+    - relationships:
+        arguments:
+          to: ref('dim_time')
+          field: time_key
+  - name: location_key
+    data_tests:
+    - not_null
+    - relationships:
+        arguments:
+          to: ref('dim_location')
+          field: location_key
+  - name: severity_key
+    data_tests:
+    - not_null
+    - relationships:
+        arguments:
+          to: ref('dim_crash_severity')
+          field: severity_key
+  - name: collision_count
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values:
+          - 1
+          quote: false
+  - name: number_of_persons_injured
+    description: Null means not recorded.
+  - name: number_of_persons_killed
+    description: Null means not recorded.
+  - name: number_of_pedestrians_injured
+    data_tests:
+    - not_null
+  - name: number_of_pedestrians_killed
+    data_tests:
+    - not_null
+  - name: number_of_cyclist_injured
+    data_tests:
+    - not_null
+  - name: number_of_cyclist_killed
+    data_tests:
+    - not_null
+  - name: number_of_motorist_injured
+    data_tests:
+    - not_null
+  - name: number_of_motorist_killed
+    data_tests:
+    - not_null
+  - &id001
+    name: loaded_at_utc
+    description: Original raw-load timestamp. Intentionally null until the raw source
+      supplies it and the staging load-timestamp flag is enabled; this required test
+      must pass before submission.
+    data_tests:
+    - not_null
+- name: fact_311_request
+  description: One row per qualifying 311 request from staging, with separate creation/closure
+    date roles.
+  columns:
+  - name: unique_key
+    data_tests:
+    - unique
+    - not_null
+  - name: created_date_key
+    data_tests:
+    - not_null
+    - relationships:
+        arguments:
+          to: ref('dim_date')
+          field: date_key
+  - name: created_time_key
+    data_tests:
+    - not_null
+    - relationships:
+        arguments:
+          to: ref('dim_time')
+          field: time_key
+  - name: closed_date_key
+    data_tests:
+    - not_null
+    - relationships:
+        arguments:
+          to: ref('dim_date')
+          field: date_key
+  - name: location_key
+    data_tests:
+    - not_null
+    - relationships:
+        arguments:
+          to: ref('dim_location')
+          field: location_key
+  - name: complaint_key
+    data_tests:
+    - not_null
+    - relationships:
+        arguments:
+          to: ref('dim_complaint')
+          field: complaint_key
+  - name: status_key
+    data_tests:
+    - not_null
+    - relationships:
+        arguments:
+          to: ref('dim_request_status')
+          field: status_key
+  - name: request_count
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values:
+          - 1
+          quote: false
+  - name: created_datetime
+    data_tests:
+    - not_null
+  - name: closed_datetime
+  - name: resolution_hours
+    description: NYC wall-clock hours; null when no closure date exists.
+  - *id001

@@ -1,12 +1,10 @@
 # Group 16 dbt handoff
 
-## What I’ve set up so far
+## What I've added
 
-I added the source definitions, `dim_date`, `dim_time`, and `dim_crash_severity`, along with six tests for duplicate or missing dimension keys.
+The repo now has the two staging models, all six dimensions, and both fact models from our updated design. I added `dim_location`, `dim_complaint`, `dim_request_status`, `fact_collision`, and `fact_311_request`, along with relationship and reconciliation tests.
 
-I’ve now added `stg_nyc_collisions` and `stg_nyc_311_requests` using the raw-table columns you sent. They include data checks, row-count reconciliation, and four unit tests. [STAGING_SETUP.md](STAGING_SETUP.md) explains what to copy and what we need to confirm before running them.
-
-The earlier dimension-only project passed `dbt parse` on my working branch. My own BigQuery sandbox blocked the warehouse build. The new staging work has not yet completed a dbt build or warehouse test run, and we still need the complete build/test results from the receiving project.
+The five new mart models passed local fixture checks. This doesn't replace a BigQuery build: we still need to confirm the timestamp settings, resolve the missing original load timestamp, and run the full build and tests in the receiving project.
 
 ## Raw data
 
@@ -14,57 +12,50 @@ The earlier dimension-only project passed `dbt parse` on my working branch. My o
 - **Dataset:** `group16_raw_data`
 - **Tables:** `source_nyc_mv_collisions` and `source_nyc_311_streetlight_signal`
 
-## Add the files to your project
+## Add the update to your project
 
-1. Create a working branch in your dbt project.
-2. Copy `models/group16` into `models`.
-3. Copy `macros/group16` into `macros`, and `tests/group16` into `tests`.
-4. Copy `analyses/inspect_raw_schema.sql` and `analyses/inspect_timestamp_encoding.sql` into `analyses`.
-5. Compare existing files before replacing them. Keep your project name, profile, and BigQuery connection.
-6. In `dbt_project.yml`, add the `group16` configuration under `models` and your existing project name if you haven't already.
-7. Follow the timestamp checks in [STAGING_SETUP.md](STAGING_SETUP.md) before building staging. Save all files.
+1. Create a working branch.
+2. Compare and copy `models/group16`, `macros/group16`, and `tests/group16` into the matching folders.
+3. Copy the two source-inspection queries from `analyses` if they aren't already there.
+4. Keep your own project name, profile, and BigQuery connection.
+5. Keep the `group16` settings under `models` and your existing project name in `dbt_project.yml`.
+6. Follow [STAGING_SETUP.md](STAGING_SETUP.md) for date handling and [MARTS_SETUP.md](MARTS_SETUP.md) for the new tables and load-timestamp settings.
+7. Save everything and rebuild staging as part of the full build. Its updated SQL now exposes `loaded_at_utc` for the facts.
 
-dbt normally adds your development dataset name before `group16_staging` and `group16_marts`. Check the build logs for the actual output locations.
+dbt normally prefixes the custom datasets with your development dataset name. Check the build logs for the actual output locations.
 
-## Check the first three dimensions
+## Run the full project
 
-Run these separately:
+After resolving the settings above, run these separately:
 
 ```bash
 dbt parse
 ```
 
 ```bash
-dbt build --select dim_date dim_time dim_crash_severity
-```
-
-The expected result is three dimension tables and six passing tests:
-
-- `dim_time`: 1,441 rows, including Unknown with key `-1`.
-- `dim_crash_severity`: five categories.
-- `dim_date`: January 1, 2021 through the day the build runs, plus Not closed with key `0`.
-
-The calendar currently extends through the build date rather than a fixed extraction date. The staging models apply the analysis window to crash dates and request creation dates, but retain later request closures.
-
-## Check the staging models
-
-After confirming the timestamp settings, run:
-
-```bash
-dbt build --select stg_nyc_collisions stg_nyc_311_requests
+dbt build --select path:models/group16
 ```
 
 ```bash
 dbt test --select path:tests/group16
 ```
 
-Send me the build/test results and any errors. Duplicate IDs and invalid values should be reviewed instead of dropping records just to make the tests pass.
+There are ten models: two staging tables, six dimensions, and two facts. dbt builds the dimensions before the facts through their references.
 
-## What we still need to do
+The small dimensions should still contain:
 
-- Confirm the timestamp encoding, build staging, and review all test results.
-- Resolve the missing original `loaded_at_utc` in the raw tables; `staged_at_utc` is a different timestamp.
-- Add `dim_location`, `dim_complaint`, and `dim_request_status`.
-- Build `fact_collision` and `fact_311_request`.
-- Test relationships and reconcile the final fact counts with staging.
-- Run the full pipeline and collect lineage screenshots and submission documentation.
+- `dim_time`: 1,441 rows, including Unknown with key `-1`.
+- `dim_crash_severity`: five categories.
+- `dim_date`: January 1, 2021 through the build date, plus Not closed with key `0`.
+
+The other dimension counts depend on the staged data. Each fact must preserve the IDs and row counts from its staging model, and every foreign key must match a dimension row.
+
+## What's still needed
+
+- Confirm the source timestamp encoding from the Cloud Function code.
+- Add trustworthy original `loaded_at_utc` values to the raw data and enable their staging flags. Fact not-null tests intentionally fail while these values are missing.
+- Run the full build and tests, investigate errors, and document warnings.
+- Confirm the calendar endpoint with our documentation; the current SQL uses the build date rather than a fixed extraction date.
+- Collect the complete DAG and BigQuery screenshots, share the final datasets with the professor, and prepare the overview, ELT documentation, and meeting log for Brightspace.
+
+Send me the build/test results and any errors so we can resolve them before submission.

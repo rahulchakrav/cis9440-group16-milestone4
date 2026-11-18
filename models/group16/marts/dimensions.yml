@@ -1,26 +1,74 @@
 version: 2
-
 models:
-  - name: dim_date
-    description: Calendar dates through the build date, plus a Not closed row.
-    columns:
-      - name: date_key
-        data_tests:
-          - unique
-          - not_null
-
-  - name: dim_time
-    description: Every minute of the day, plus an Unknown row.
-    columns:
-      - name: time_key
-        data_tests:
-          - unique
-          - not_null
-
-  - name: dim_crash_severity
-    description: Five crash severity categories with fixed integer keys.
-    columns:
-      - name: severity_key
-        data_tests:
-          - unique
-          - not_null
+- name: dim_date
+  description: Calendar dates through the build date, plus a Not closed row.
+  columns:
+  - name: date_key
+    data_tests:
+    - unique
+    - not_null
+- name: dim_time
+  description: Every minute of the day, plus an Unknown row.
+  columns:
+  - name: time_key
+    data_tests:
+    - unique
+    - not_null
+- name: dim_crash_severity
+  description: Five crash severity categories with fixed integer keys.
+  columns:
+  - name: severity_key
+    data_tests:
+    - unique
+    - not_null
+- name: dim_location
+  description: One borough and ZIP combination shared across both marts. Key 0 represents
+    Unknown borough and Unknown ZIP; partially known locations remain separate. Other
+    keys are stable signed INT64 fingerprints.
+  columns:
+  - name: location_key
+    data_tests:
+    - unique
+    - not_null
+  - name: borough
+    data_tests:
+    - not_null
+  - name: zip_code
+    data_tests:
+    - not_null
+- name: dim_complaint
+  description: One complaint type, descriptor, and nullable descriptor_2 combination.
+    Signed INT64 keys are derived from the JSON-encoded natural key.
+  columns:
+  - name: complaint_key
+    data_tests:
+    - unique
+    - not_null
+  - name: complaint_type
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values:
+          - Street Light Condition
+          - Traffic Signal Condition
+  - name: descriptor
+    data_tests:
+    - not_null
+  - name: descriptor_2
+    description: Null is distinct from a literal text value such as null or Not specified.
+- name: dim_request_status
+  description: One normalized request status. Key 0 represents Unknown. Closed alone
+    maps to is_closed=true.
+  columns:
+  - name: status_key
+    data_tests:
+    - unique
+    - not_null
+  - name: status
+    data_tests:
+    - unique
+    - not_null
+  - name: is_closed
+    data_tests:
+    - not_null

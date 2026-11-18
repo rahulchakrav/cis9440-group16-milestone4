@@ -11,6 +11,12 @@
 with normalized as (
     select
         collision_id,
+        {% if var('group16_collision_has_loaded_at_utc', false) %}
+        safe_cast(loaded_at_utc as timestamp) as loaded_at_utc,
+        {% else %}
+        -- The supplied raw schema has no original load timestamp.
+        cast(null as timestamp) as loaded_at_utc,
+        {% endif %}
         crash_date as raw_crash_timestamp,
         date({{ group16_local_datetime('crash_date', timestamp_timezone, 'group16_collision_timestamp_timezone') }}) as crash_date,
         nullif(trim(crash_time), '') as raw_crash_time,
@@ -77,5 +83,7 @@ select
     raw_crash_time,
     has_invalid_injury_count,
     raw_crash_time is not null and crash_time is null as has_invalid_crash_time,
+    loaded_at_utc,
     current_timestamp() as staged_at_utc
 from classified
+

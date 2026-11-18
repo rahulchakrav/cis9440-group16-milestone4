@@ -53,7 +53,7 @@ dbt build --select stg_nyc_collisions stg_nyc_311_requests
 ```
 
 ```bash
-dbt test --select path:tests/group16
+dbt test --select warn_missing_raw_event_dates
 ```
 
 The build includes four fixture-based unit tests as well as the models' data tests. The extra test command includes the source-only missing-date check. Keep the results and investigate errors before using these models for facts. Warnings identify missing source dates or status/closure inconsistencies that need to be counted and documented.
@@ -73,4 +73,5 @@ The build includes four fixture-based unit tests as well as the models' data tes
 
 Neither supplied raw schema includes `loaded_at_utc`. The staging models add `staged_at_utc`, which means when dbt built the table. It is not the original Cloud Function load time and should not be renamed to imply that it is.
 
-Before building the final facts, add a real load timestamp to the extraction pipeline and reload/backfill from trustworthy load metadata, or document an approved model change. We still need the remaining three dimensions, both fact models, relationships, and full warehouse validation.
+Staging now also exposes `loaded_at_utc`. By default this is a typed null because the supplied raw schemas lack that field. Once a real load timestamp has been added to each source, enable its flag as described in [MARTS_SETUP.md](MARTS_SETUP.md). The facts carry it through and require non-null values. All six dimensions and both facts are now in the repo; full warehouse validation is still outstanding.
+
